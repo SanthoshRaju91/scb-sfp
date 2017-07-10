@@ -4,15 +4,13 @@ const fs = require('fs');
 const app = express();
 
 app.use('/',express.static('views'));
+app.use(bodyParser.json({limit:'50mb'}));
 
-app.post('/submit',bodyParser.json(),function(req,res){
-  var newTranslation = req.body;
-  console.log(newTranslation);
-  console.log(JSON.stringify(newTranslation));
-  fs.writeFile('views/assets/translations.json',JSON.stringify(newTranslation),'utf8',function(err){
+app.post('/submit',function(req,res){
+  fs.writeFile('views/assets/translations.json',JSON.stringify(req.body),'utf8',function(err){
     if(err) throw err;
+    res.json({transactionSuccess: true});
   });
-  res.json(newTranslation);
 });
 
 app.get('/', function(req, res) {
