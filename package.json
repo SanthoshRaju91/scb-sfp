@@ -1,0 +1,11 @@
+{
+  "name": "scb-sfp",
+  "version": "1.0.0",
+  "description": "Translation project",
+  "main": "server.js",
+  "scripts": {
+    "test": "npm start"
+  },
+  "author": "",
+  "license": "ISC"
+}
