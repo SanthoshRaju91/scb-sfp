@@ -29,9 +29,9 @@
         alert('Invalid JSON');
     } else {
       var translations = JsonEditor.get();
-      
+
       $.post({
-        url: 'http://localhost:3000/submit',
+        url: 'http://localhost:3000/api/submit',
         data: JSON.stringify(translations),
         contentType: 'application/json',
         success: function(response){
