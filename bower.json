@@ -1,0 +1,15 @@
+{
+  "name": "scb-sfp",
+  "description": "Translation project",
+  "main": "index.html",
+  "authors": [
+    "santhoshRaju91 <santhosh.codeholic@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/SanthoshRaju91/scb-sfp",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "jquery": "^3.2.1",
+    "jsoneditor": "^5.8.2"
+  }
+}
