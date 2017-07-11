@@ -3,5 +3,5 @@ module.exports = {
   PORT: 3000,
   LOCATIONURL: '',
   DIRNAME: __dirname,
-  LOCATION: 'views/assets/translations.json'
+  LOCATION: 'views/assets'
 };

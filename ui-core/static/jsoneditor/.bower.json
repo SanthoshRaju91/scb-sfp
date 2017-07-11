@@ -1,0 +1,42 @@
+{
+  "name": "jsoneditor",
+  "description": "A web-based tool to view, edit and format JSON",
+  "tags": [
+    "json",
+    "editor",
+    "viewer",
+    "formatter"
+  ],
+  "homepage": "http://jsoneditoronline.org/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josdejong/jsoneditor.git"
+  },
+  "main": [
+    "./dist/jsoneditor.min.js",
+    "./dist/jsoneditor.min.css"
+  ],
+  "bugs": "https://github.com/josdejong/jsoneditor/issues",
+  "ignore": [
+    "misc",
+    "node_modules",
+    "test",
+    "tools",
+    "gulpfile.js",
+    "npm-debug.log",
+    ".idea",
+    ".npmignore",
+    ".gitignore"
+  ],
+  "dependencies": {},
+  "version": "5.9.0",
+  "_release": "5.9.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v5.9.0",
+    "commit": "a00ec592413530f6f28833006535a0472d30bed4"
+  },
+  "_source": "https://github.com/josdejong/jsoneditor.git",
+  "_target": "^5.8.2",
+  "_originalSource": "jsoneditor"
+}
