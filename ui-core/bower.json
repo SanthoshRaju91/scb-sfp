@@ -1,0 +1,25 @@
+{
+  "name": "ui-core",
+  "description": "UI for the SFP project",
+  "main": "",
+  "authors": [
+    "santhoshRaju91 <santhosh.codeholic@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/SanthoshRaju91/scb-sfp",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "views/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "jquery": "^3.2.1",
+    "jsoneditor": "^5.8.2",
+    "ajv": "4.1.0",
+    "animate.css": "^3.5.2"
+  }
+}
