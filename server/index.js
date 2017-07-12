@@ -14,14 +14,19 @@ const app = express();
 app.use('/', express.static('views'));
 app.use(morgan('dev'));
 app.use(bodyParser.json({ limit: '50mb' }));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 /** Application REST endpoint's definition */
 app.use('/api', routes);
 
 /** Serving main view file */
-// app.get('/', (req, res) => {
-//   res.sendFile(`${DIRNAME}/views/index.html`);
-// });
+app.get('/', (req, res) => {
+  res.sendFile(`${DIRNAME}/views/index.html`);
+});
 
 /** Starting server on the configured PORT */
 app.listen(PORT, (err) => {

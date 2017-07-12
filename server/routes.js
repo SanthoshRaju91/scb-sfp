@@ -10,8 +10,27 @@ const {
     LOCATION
 } = config;
 
+
+routes.get('/getTranslation/:lang', (req, res) => {
+  let payload = req.params;
+  fs.readFile(`${config.LOCATION}/${payload.lang}/translations.json`, 'utf8',(err, data) => {
+    if(err) {
+      console.error(err);
+      res.json({ success: false, message: 'Something went wrong'});
+    } else {
+      let responseData = JSON.parse(data);
+      res.json({ success: true, data: responseData });
+    }
+  });
+});
+
 routes.post('/submit', (req, res) => {
-    fs.writeFile(LOCATION, JSON.stringify(req.body), 'utf8', (err) => {
+    let lang = req.body.lang,
+        dir  = `${LOCATION}/${lang}`;
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+    }
+    fs.writeFile(`${dir}/translations.json`, JSON.stringify(req.body.data), 'utf8', (err) => {
         if (err) throw err;
         res.json({
             transactionSuccess: true
