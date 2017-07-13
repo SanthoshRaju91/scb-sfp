@@ -4,6 +4,7 @@ import fs from 'fs';
 import morgan from 'morgan';
 import config from '../config/config';
 import routes from './routes';
+import websocketServer from './websocketServer'
 
 const { PORT, DIRNAME } = config;
 const app = express();
@@ -19,6 +20,8 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+
+websocketServer.start()
 
 /** Application REST endpoint's definition */
 app.use('/api', routes);

@@ -17,7 +17,8 @@
     "babel-register": "^6.24.1",
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
-    "morgan": "^1.8.2"
+    "morgan": "^1.8.2",
+    "websocket": "^1.0.24"
   },
   "devDependencies": {
     "fs-extra": "^3.0.1",
