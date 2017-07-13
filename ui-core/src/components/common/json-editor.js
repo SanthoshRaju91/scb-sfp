@@ -47,7 +47,7 @@ module.exports = {
       let translations = this.translations
       this.ObjectEditor.set(translations)
     }
-  },  
+  },
   created () {
     this.jsonID = `element-${Math.random()}`
     this.objectID = `element-${Math.random()}`
@@ -69,7 +69,7 @@ module.exports = {
     let OBJOptions = {
       "mode": "tree",
       "search": true
-    };
+    }
 
     let ObjectEditor = new JSONEditor(ObjectContainer, OBJOptions);
     this.ObjectEditor = ObjectEditor
