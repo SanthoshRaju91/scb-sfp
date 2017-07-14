@@ -23,9 +23,12 @@ export default {
 
   post (url, data) {
     let serviceEndpoint = this.constructURL(url)
-
     return new Promise((resolve, reject) => {
-      axios.post(serviceEndpoint, data)
+      axios({
+        method: 'post',
+        url: serviceEndpoint,
+        data
+      })
         .then(response => {
           resolve(response)
         })

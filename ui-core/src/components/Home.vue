@@ -16,6 +16,13 @@
         </div>
 
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
+
+          <form class="navbar-form navbar-left">
+            <button class="btn btn-danger" data-target="#updateExistingLanguage" @click="modifyExistingTranslation" v-if="newTranslation">Update Existing Translation</button>
+            <button class="btn btn-danger" data-target="#addnewLAnguage" @click="addNewTranslation" v-else="newTranslation">Add a new Language</button>
+          </form>
+
+          <div v-if="!newTranslation">
           <form class="navbar-form navbar-right">
             <button class="btn btn-danger" data-toggle="modal" data-target="#importConfirmation" v-bind:disabled="inProgress">Import</button>
           </form>
@@ -36,10 +43,42 @@
             </div>
           </form>
         </div>
+        </div>
       </div>
     </nav>
 
-    <div class="container-fluid">
+    <div class="container-fluid" v-if="newTranslation">
+      <div class="row">
+        <div class="form-group">
+          <label for="newKey" class="col-lg-4 control-label">Key for new Language</label>
+          <div class="col-lg-4">
+            <input type="text" class="form-control" id="newKey" placeholder="Add key" v-model="newLanguageKey">
+          </div>
+        </div><br><br>
+
+        <div class="form-group">
+          <label for="newDescription" class="col-lg-4 control-label">Description for new Language</label>
+          <div class="col-lg-4">
+            <input type="text" class="form-control" id="newDescription" placeholder="Add Description" v-model="newLanguageDesc">
+          </div>
+
+          <div class="col-lg-4">
+            <button type="submit" class="btn btn-success" id="submitNewTranslation"  data-toggle="modal" data-target="#submitConfirmation" v-bind:disabled=showAddButton>Add New Translation</button>
+          </div>
+        </div>
+
+
+      </div>
+      <br>
+        <json-editor
+        v-bind:translations="translation"
+        v-if="isData"
+        @updated="updateTranslation"
+        @error="checkError"
+        ></json-editor>
+    </div>
+
+    <div class="container-fluid" v-else="newTranslation">
       <div class="text-center" v-if="isError">
         <div class="row">
           <div class="col-lg-offset-3 col-lg-5">
@@ -71,7 +110,7 @@
       ></json-editor>
     </div>
 
-    <!-- Modal for import confirmation  -->
+        <!-- Modal for import confirmation  -->
     <div class="modal fade bs-example-modal-sm" id="importConfirmation" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -105,8 +144,8 @@
             <div class="alert alert-sm alert-danger" v-if="showModalError">
               <strong>Git credentials are required.</strong>
             </div>
-
-            <p>Please provide your git credentials for merging the translations ?</p>
+            <p v-if="newTranslation"> Please provide your git credentials for adding this new Translation !</p>
+            <p v-else="newTranslation">Please provide your git credentials for merging the translations ?</p>
             <br/>
             <div class="form-horizontal">
               <div class="form-group">
@@ -126,7 +165,8 @@
               <div class="form-group">
                 <div class="col-lg-6 col-lg-offset-4">
                   <button type="submit" class="btn btn-default btn-sm btn-cancel" data-dismiss="modal">Cancel</button>
-                  <button type="submit" class="btn btn-success btn-sm" @click="submitTranslation">Submit</button>
+                  <button type="submit" class="btn btn-success btn-sm" v-if="newTranslation" @click="addTranslation">Submit</button>
+                  <button type="submit" class="btn btn-success btn-sm" v-else="newTranslation" @click="submitTranslation">Submit</button>
                 </div>
               </div>
             </div>
@@ -158,7 +198,12 @@ export default {
       inProgress: true,
       showModalError: false,
       showSubmit: false,
-      sumbitMsg: ''
+      sumbitMsg: '',
+      newTranslation: false,
+      newLanguageKey: '',
+      newLanguageDesc: '',
+      newOption: {},
+      loadNewlyAdded: false
     }
   },
   /**
@@ -169,7 +214,7 @@ export default {
     /** Service call to check if the application is configured. */
     ajax.get('/api/config')
       .then(response => {
-        if (response) {
+        if (Object.keys(response.data).length) {
           this.applicationName = response.data.NAME
           this.getLanguages()
         } else {
@@ -240,8 +285,8 @@ export default {
       ajax.get('/api/language')
         .then(response => {
           if (response) {
+            this.selectedOption = (this.loadNewlyAdded) ? this.newOption : response.data[0]
             this.translationOptions = response.data
-            this.selectedOption = response.data[0]
             this.selectedValue = `${this.selectedOption.description} (${this.selectedOption.lang})`
             this.getTranslation()
           }
@@ -262,6 +307,21 @@ export default {
     },
 
     /**
+    * Function to display new translation screen
+    * @method addNewTranslation
+    */
+    addNewTranslation () {
+      this.newTranslation = true
+    },
+
+    /**
+    * Function to toggle back to modify trsnalation screen
+    * @method modifyExistingTranslation
+    */
+    modifyExistingTranslation () {
+      this.newTranslation = false
+    },
+    /**
     * Function handler for submitting the translation file for merging
     * @method submitTranslation
     */
@@ -270,15 +330,66 @@ export default {
       if(this.gitEmailAddress && this.gitPassword) {
         let selectedLang = this.selectedOption.lang
         let selectedValue = this.selectedValue
-        ajax.post('/api/submit', { land: selectedLang})
+        ajax.post('/api/submit', { lang: selectedLang, data: this.translation})
           .then(response => {
             if(response.data.transactionSuccess) {
               this.showSubmit = true
               this.submitMsg = `New translation written & imported for ${selectedValue}`
+              setTimeout(() => {
+                this.showSubmit = false
+              }, 5000);
               this.getTranslation()
             } else {
               this.showSubmit = true
               this.submitMsg = `Something went wrong, while saving translation for ${selectedValue}`
+
+              setTimeout(() => {
+                this.showSubmit = false
+              }, 5000);
+            }
+            $('#submitConfirmation').modal('hide')
+          })
+          .catch(err => {
+            console.error(err);
+            $('#submitConfirmation').modal('hide')
+
+          })
+      } else {
+        this.showModalError = true
+      }
+    },
+    /**
+    * Function handler for submitting the translation file for merging
+    * @method submitTranslation
+    */
+    addTranslation () {
+      if(this.gitEmailAddress && this.gitPassword) {
+        let selectedLangKey = this.newLanguageKey
+        let selectedDesc = this.newLanguageDesc
+        ajax.post('/api/language', { lang: selectedLangKey,description: selectedDesc ,data: this.translation})
+          .then(response => {
+            if(response.data.transactionSuccess) {
+              this.showSubmit = true
+              this.submitMsg = `New translation added for ${selectedDesc}`
+              setTimeout(() => {
+                this.showSubmit = false
+              }, 5000);
+              this.newTranslation = false
+              //this.selectedOption.lang = lang
+              //this.selectedOption.desc = description
+              this.newOption = {'lang':response.data.lang , 'description':response.data.description}
+              this.loadNewlyAdded = true
+              this.getLanguages()
+              this.newLanguageKey = ''
+              this.newLanguageDesc = ''
+              //this.getTranslation()
+            } else {
+              this.showSubmit = true
+              this.submitMsg = `Something went wrong, while saving translation for ${selectedDesc}`
+
+              setTimeout(() => {
+                this.showSubmit = false
+              }, 5000);
             }
             $('#submitConfirmation').modal('hide')
           })
@@ -291,7 +402,18 @@ export default {
         this.showModalError = true
       }
     }
+  },
+
+computed: {
+  showAddButton: function () {
+    if(this.newLanguageDesc && this.newLanguageKey){
+      return false
+    }
+    else {
+      return true
+    }
   }
+}
 }
 </script>
 

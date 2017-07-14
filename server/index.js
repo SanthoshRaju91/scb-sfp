@@ -4,8 +4,10 @@ import fs from 'fs';
 import morgan from 'morgan';
 import config from '../config/config';
 import routes from './routes';
+import appConfig from './config';
 
-const { PORT, DIRNAME } = config;
+// const {  } = config;
+const { PORT, DIRNAME } = appConfig;
 const app = express();
 
 /**

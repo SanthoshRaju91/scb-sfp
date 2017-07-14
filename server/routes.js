@@ -56,19 +56,28 @@ routes.get('/language', (req, res) => {
 });
 
 routes.post('/language', (req, res) => {
-    let { lang, description } = req.body;
+    let { lang, description, data } = req.body;
     let selectedLanguage = language.filter((item) => {
-      return item.lang === lang;
+      return item.lang.toLocaleLowerCase() === lang.toLocaleLowerCase() || !lang;
     });
     if(selectedLanguage && selectedLanguage.length > 0) {
-      res.send(500, 'Language already exists');
+      res.send(500, 'Language already exists or invalid');
     } else {
       language.push({lang, description});
       fs.writeFile(`${__dirname}/../config/language.json`, JSON.stringify(language), 'utf8', (err) => {
           if (err) throw err;
-          res.json({
-              transactionSuccess: true,
-              data: language
+          let dir  = `${LOCATION}/${lang}`;
+          if (!fs.existsSync(dir)){
+              fs.mkdirSync(dir);
+          }
+          fs.writeFile(`${dir}/translations.json`, JSON.stringify(data), 'utf8', (err2) => {
+              if (err2) throw err2;
+              res.json({
+                  transactionSuccess: true,
+                  lang,
+                  data,
+                  description
+              });
           });
       });
     }
