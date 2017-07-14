@@ -4,6 +4,7 @@ import {
 import fs from 'fs';
 import config from '../config/config.json';
 import language from '../config/language.json';
+import websocketServer from './websocketServer'
 
 const routes = new Router;
 const {
@@ -26,12 +27,15 @@ routes.get('/getTranslation/:lang', (req, res) => {
 
 routes.post('/submit', (req, res) => {
     let lang = req.body.lang,
-        dir  = `${LOCATION}/${lang}`;
+        dir  = `${LOCATION}/${lang}`,
+        translations = JSON.stringify(req.body.data),
+        websocketConnection = websocketServer.getConnection();
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
-    fs.writeFile(`${dir}/translations.json`, JSON.stringify(req.body.data), 'utf8', (err) => {
+    fs.writeFile(`${dir}/translations.json`, translations, 'utf8', (err) => {
         if (err) throw err;
+        websocketConnection.sendUTF(JSON.stringify({'lang':lang,'translations': translations}));
         res.json({
             transactionSuccess: true
         });
