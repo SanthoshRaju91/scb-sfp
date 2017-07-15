@@ -51,6 +51,7 @@ routes.post('/submit', async(req, res) => {
         } else {
 
           let gitURL = constructGitURL(config.GIT_URL, password);
+          console.log(gitURL);
           if (!fs.existsSync(`git-${dir}`)) {
             // fs.mkdirSync(`git-${dir}`);
             shell.exec(`git clone ${gitURL} ../git-${dir}`);
