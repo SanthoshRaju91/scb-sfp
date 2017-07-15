@@ -4,5 +4,6 @@
     "LOCATIONURL": "",
     "DIRNAME": "__dirname",
     "LOCATION": "location",
+    "GIT_LOCATION": "git-location",
     "GIT_URL": "https://github.com/SanthoshRaju91/test-translation.git"
 }

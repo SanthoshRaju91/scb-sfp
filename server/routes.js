@@ -10,7 +10,8 @@ import shell from 'shelljs';
 
 const routes = new Router;
 const {
-    LOCATION
+    LOCATION,
+    GIT_LOCATION
 } = config;
 
 
@@ -51,15 +52,14 @@ routes.post('/submit', async(req, res) => {
         } else {
 
           let gitURL = constructGitURL(config.GIT_URL, password);
-          console.log(gitURL);
-          if (!fs.existsSync(`git-${dir}`)) {
-            // fs.mkdirSync(`git-${dir}`);
-            shell.exec(`git clone ${gitURL} ../git-${dir}`);
+          if (!fs.existsSync(`${GIT_LOCATION}`)) {
+            fs.mkdirSync(`${GIT_LOCATION}`);
+            shell.exec(`git clone ${gitURL} ${GIT_LOCATION}`);
           }
 
-          shell.cp('-r', `${dir}/translations.json`, `../git-${dir}/translations.json`);
+          shell.cp('-r', `${dir}/translations.json`, `${GIT_LOCATION}/${lang}/translations.json`);
           shell.exec(`git config user.name "${username}"`);
-          shell.cd(`git-${dir}`);
+          shell.cd(`${GIT_LOCATION}/${lang}`);
           shell.exec('git add .');
           shell.exec(`git commit -m "Adding translation to ${lang}"`);
           let command = shell.exec(`git push ${gitURL} --all`);
