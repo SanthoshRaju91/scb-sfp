@@ -80,6 +80,7 @@ routes.post('/submit', async(req, res) => {
 
     function constructGitURL(url, password) {
       let encodedPassword = encodeURIComponent(password);
+      console.log(encodeURIComponent(password));
       encodedPassword = encodedPassword.replace(/!/g, '%21');
       let index = url.indexOf('//');
       let protocol = url.substr(0, index);
