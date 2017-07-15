@@ -4,7 +4,9 @@ import {
 import fs from 'fs';
 import config from '../config/config.json';
 import language from '../config/language.json';
-import websocketServer from './websocketServer'
+import shell from 'shelljs';
+// import async from 'async';
+// import websocketServer from './websocketServer'
 
 const routes = new Router;
 const {
@@ -25,22 +27,66 @@ routes.get('/getTranslation/:lang', (req, res) => {
   });
 });
 
-routes.post('/submit', (req, res) => {
+routes.post('/submit', async(req, res) => {
     let lang = req.body.lang,
         dir  = `${LOCATION}/${lang}`,
-        translations = JSON.stringify(req.body.data),
-        websocketConnection = websocketServer.getConnection();
+        username = req.body.username,
+        password = req.body.password,
+        translations = JSON.stringify(req.body.data);
+        // websocketConnection = websocketServer.getConnection();
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
+
+    shell.exec(`mv ${dir}/translations.json ${dir}/translations.json.bak`);
+
     fs.writeFile(`${dir}/translations.json`, translations, 'utf8', (err) => {
-        if (err) throw err;
-        websocketConnection.sendUTF(JSON.stringify({'lang':lang,'translations': translations}));
-        res.json({
-            transactionSuccess: true
-        });
+        if (err) {
+            shell.exec(`mv ${dir}/translations.json.bak ${dir}/translations.json`);
+            console.error(err);
+            res.json({
+              transactionSuccess: false,
+              message: 'Something went wrong'
+            });
+        } else {
+
+          let gitURL = constructGitURL(config.GIT_URL, password);
+          if (!fs.existsSync(`git-${dir}`)) {
+            // fs.mkdirSync(`git-${dir}`);
+            shell.exec(`git clone ${gitURL} ../git-${dir}`);
+          }
+
+          shell.cp('-r', `${dir}/translations.json`, `../git-${dir}/translations.json`);
+          shell.exec(`git config user.name "${username}"`);
+          shell.cd(`git-${dir}`);
+          shell.exec('git add .');
+          shell.exec(`git commit -m "Adding translation to ${lang}"`);
+          let command = shell.exec(`git push ${gitURL} --all`);
+
+          if(command.code !== 0) {
+            res.json({
+                transactionSuccess: false
+            });
+          } else {
+            res.json({
+                transactionSuccess: true
+            });
+          }
+        }
+        // websocketConnection.sendUTF(JSON.stringify({'lang':lang,'translations': translations}));
+
     });
+
+    function constructGitURL(url, password) {
+      let encodedPassword = encodeURIComponent(password);
+      encodedPassword = encodedPassword.replace(/!/g, '%21');
+      let index = url.indexOf('//');
+      let protocol = url.substr(0, index);
+      let git = url.slice(index + 2);
+      return `${protocol}//${username}:${password}@${git}`;
+    }
 });
+
 
 routes.get('/config', (req, res) => {
     res.json(config);

@@ -3,5 +3,6 @@
     "PORT": 3000,
     "LOCATIONURL": "",
     "DIRNAME": "__dirname",
-    "LOCATION": "location"
+    "LOCATION": "location",
+    "GIT_URL": "https://github.com/SanthoshRaju91/test-translation.git"
 }

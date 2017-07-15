@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import config from '../config/config';
 import routes from './routes';
 import appConfig from './config';
-import websocketServer from './websocketServer'
+//import websocketServer from './websocketServer'
 
 // const {  } = config;
 const { PORT, DIRNAME } = appConfig;
@@ -23,7 +23,7 @@ app.use((req, res, next) => {
   next();
 });
 
-websocketServer.start()
+// websocketServer.start()
 
 /** Application REST endpoint's definition */
 app.use('/api', routes);
