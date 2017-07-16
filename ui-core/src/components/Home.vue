@@ -330,7 +330,7 @@ export default {
       if(this.gitEmailAddress && this.gitPassword) {
         let selectedLang = this.selectedOption.lang
         let selectedValue = this.selectedValue
-        ajax.post('/api/submit', { lang: selectedLang, data: this.translation})
+        ajax.post('/api/submit', { lang: selectedLang, data: this.translation, username: this.gitEmailAddress, password: this.gitPassword})
           .then(response => {
             if(response.data.transactionSuccess) {
               this.showSubmit = true
@@ -366,35 +366,44 @@ export default {
       if(this.gitEmailAddress && this.gitPassword) {
         let selectedLangKey = this.newLanguageKey
         let selectedDesc = this.newLanguageDesc
-        ajax.post('/api/language', { lang: selectedLangKey,description: selectedDesc ,data: this.translation})
+        ajax.post('/api/language', { lang: selectedLangKey,description: selectedDesc ,data: this.translation })
           .then(response => {
             if(response.data.transactionSuccess) {
-              this.showSubmit = true
-              this.submitMsg = `New translation added for ${selectedDesc}`
-              setTimeout(() => {
-                this.showSubmit = false
-              }, 5000);
-              this.newTranslation = false
-              //this.selectedOption.lang = lang
-              //this.selectedOption.desc = description
-              this.newOption = {'lang':response.data.lang , 'description':response.data.description}
-              this.loadNewlyAdded = true
-              this.getLanguages()
-              this.newLanguageKey = ''
-              this.newLanguageDesc = ''
-              //this.getTranslation()
-            } else {
-              this.showSubmit = true
-              this.submitMsg = `Something went wrong, while saving translation for ${selectedDesc}`
+                ajax.post('/api/submit', { lang: selectedLangKey, data: this.translation, username: this.gitEmailAddress, password: this.gitPassword})
+                  .then(submitResponse => {
+                    if(submitResponse.data.transactionSuccess) {
+                      this.showSubmit = true
+                      this.submitMsg = `New translation added for ${selectedDesc}`
+                      setTimeout(() => {
+                        this.showSubmit = false
+                      }, 5000);
+                      this.newTranslation = false
+                      //this.selectedOption.lang = lang
+                      //this.selectedOption.desc = description
+                      this.newOption = {'lang':response.data.lang , 'description':response.data.description}
+                      this.loadNewlyAdded = true
+                      this.getLanguages()
+                      this.newLanguageKey = ''
+                      this.newLanguageDesc = ''
+                      //this.getTranslation()
+                    } else {
+                      this.showSubmit = true
+                      this.submitMsg = `Something went wrong, while saving translation for ${selectedDesc}`
 
-              setTimeout(() => {
-                this.showSubmit = false
-              }, 5000);
-            }
-            $('#submitConfirmation').modal('hide')
+                      setTimeout(() => {
+                        this.showSubmit = false
+                      }, 5000);
+                    }
+                    $('#submitConfirmation').modal('hide')
+                  })
+                  .catch(submitErr => {
+                    console.error(submitErr)
+                    $('#submitConfirmation').modal('hide')
+                  })
+              }
           })
           .catch(err => {
-            console.error(err);
+            console.error(err)
             $('#submitConfirmation').modal('hide')
 
           })
