@@ -48,6 +48,9 @@
     </nav>
 
     <div class="container-fluid" v-if="newTranslation">
+      <div class="alert alert-sm alert-danger" v-if="showSubmit">
+        <p>{{ submitMsg }}</p>
+      </div>
       <div class="row">
         <div class="form-group">
           <label for="newKey" class="col-lg-4 control-label">Key for new Language</label>
@@ -165,8 +168,18 @@
               <div class="form-group">
                 <div class="col-lg-6 col-lg-offset-4">
                   <button type="submit" class="btn btn-default btn-sm btn-cancel" data-dismiss="modal">Cancel</button>
-                  <button type="submit" class="btn btn-success btn-sm" v-if="newTranslation" @click="addTranslation">Submit</button>
-                  <button type="submit" class="btn btn-success btn-sm" v-else="newTranslation" @click="submitTranslation">Submit</button>
+                  <button type="submit" class="btn btn-success btn-sm" v-if="newTranslation" @click="addTranslation">
+                    <span v-if="isLoading">
+                      Submitting <i class="fa fa-spin fa-spinner" aria-hidden="true"></i>
+                    </span>
+                    <span v-else="isLoading">Submit</span>
+                  </button>
+                  <button type="submit" class="btn btn-success btn-sm" v-else="newTranslation" @click="submitTranslation">
+                    <span v-if="isLoading">
+                      Submitting <i class="fa fa-spin fa-spinner" aria-hidden="true"></i>
+                    </span>
+                    <span v-else="isLoading">Submit</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -203,7 +216,8 @@ export default {
       newLanguageKey: '',
       newLanguageDesc: '',
       newOption: {},
-      loadNewlyAdded: false
+      loadNewlyAdded: false,
+      isLoading: false
     }
   },
   /**
@@ -330,26 +344,24 @@ export default {
       if(this.gitEmailAddress && this.gitPassword) {
         let selectedLang = this.selectedOption.lang
         let selectedValue = this.selectedValue
+        this.isLoading = true
         ajax.post('/api/submit', { lang: selectedLang, data: this.translation, username: this.gitEmailAddress, password: this.gitPassword})
           .then(response => {
+            this.isLoading = false
             if(response.data.transactionSuccess) {
               this.showSubmit = true
               this.submitMsg = `New translation written & imported for ${selectedValue}`
-              setTimeout(() => {
-                this.showSubmit = false
-              }, 5000);
+              this.showSubmit = false
               this.getTranslation()
             } else {
               this.showSubmit = true
               this.submitMsg = `Something went wrong, while saving translation for ${selectedValue}`
-
-              setTimeout(() => {
-                this.showSubmit = false
-              }, 5000);
+              this.showSubmit = false
             }
             $('#submitConfirmation').modal('hide')
           })
           .catch(err => {
+            this.isLoading = false
             console.error(err);
             $('#submitConfirmation').modal('hide')
 
@@ -366,43 +378,43 @@ export default {
       if(this.gitEmailAddress && this.gitPassword) {
         let selectedLangKey = this.newLanguageKey
         let selectedDesc = this.newLanguageDesc
+        this.isLoading = true
         ajax.post('/api/language', { lang: selectedLangKey,description: selectedDesc ,data: this.translation })
           .then(response => {
             if(response.data.transactionSuccess) {
-                ajax.post('/api/submit', { lang: selectedLangKey, data: this.translation, username: this.gitEmailAddress, password: this.gitPassword})
+                ajax.post('/api/submit', { lang: selectedLangKey, data: this.translation, username: this.gitEmailAddress, password: this.gitPassword, mode: 'add'})
                   .then(submitResponse => {
+                    this.isLoading = false
                     if(submitResponse.data.transactionSuccess) {
                       this.showSubmit = true
                       this.submitMsg = `New translation added for ${selectedDesc}`
-                      setTimeout(() => {
-                        this.showSubmit = false
-                      }, 5000);
+                      this.showSubmit = false
                       this.newTranslation = false
-                      //this.selectedOption.lang = lang
-                      //this.selectedOption.desc = description
                       this.newOption = {'lang':response.data.lang , 'description':response.data.description}
                       this.loadNewlyAdded = true
                       this.getLanguages()
                       this.newLanguageKey = ''
                       this.newLanguageDesc = ''
-                      //this.getTranslation()
                     } else {
                       this.showSubmit = true
                       this.submitMsg = `Something went wrong, while saving translation for ${selectedDesc}`
-
-                      setTimeout(() => {
-                        this.showSubmit = false
-                      }, 5000);
                     }
                     $('#submitConfirmation').modal('hide')
                   })
                   .catch(submitErr => {
+                    this.isLoading = false
                     console.error(submitErr)
                     $('#submitConfirmation').modal('hide')
                   })
+              } else {
+                this.showSubmit = true
+                this.isLoading = false
+                this.submitMsg = response.data.message
+                $('#submitConfirmation').modal('hide')
               }
           })
           .catch(err => {
+            this.isLoading = false
             console.error(err)
             $('#submitConfirmation').modal('hide')
 
@@ -454,6 +466,14 @@ computed: {
 
 .navbar-form .btn-group .btn {
   padding: 6px 20px;
+}
+
+.show-Spinner {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  background-image:
+
 }
 
 .headers h5 {

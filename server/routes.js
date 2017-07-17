@@ -44,7 +44,6 @@ routes.get('/getTranslation/:lang', (req, res) => {
 });
 
 routes.post('/submit', async(req, res) => {
-    console.log(isLocked);
     if(isLocked) {
       res.json({ transactionSuccess: false, message: 'File update in progess'});
     }
@@ -54,7 +53,8 @@ routes.post('/submit', async(req, res) => {
         dir = `${LOCATION}/${lang}`,
         username = req.body.username,
         password = req.body.password,
-        translations = JSON.stringify(req.body.data);
+        translations = JSON.stringify(req.body.data),
+        mode = req.body.mode;
 
     let pwd = shell.exec('pwd');
     let rootPwd = pwd.stdout.toString();
@@ -94,6 +94,10 @@ routes.post('/submit', async(req, res) => {
                 shell.cd(`${rootPwd}`);
                 shell.rm('-rf', `${dir}/translations.json`);
                 shell.exec(`mv ${dir}/translations.json.bak ${dir}/translations.json`);
+                if(mode === 'add') {
+                  shell.rm('-rf', `${dir}`);
+                  shell.exec(`mv ${__dirname}/../config/language.json.bak ${__dirname}/../config/language.json`);
+                }
                 isLocked = false;
                 res.json({
                     transactionSuccess: false
@@ -102,6 +106,8 @@ routes.post('/submit', async(req, res) => {
                 shell.cd(`${rootPwd}`);
                 shell.rm('-rf', `${dir}/translations.json.bak`);
                 isLocked = false;
+                console.log('Passed!!!!!!')
+
                 res.json({
                     transactionSuccess: true
                 });
@@ -132,16 +138,6 @@ routes.get('/config', (req, res) => {
       }
     }
   });
-    // if (config.isConfigured) {
-    //   res.json({
-    //     isConfigured: true,
-    //     name: config.NAME
-    //   })
-    // } else {
-    //   res.json({
-    //     isConfigured: false
-    //   });
-    // }
 });
 
 routes.post('/config', (req, res) => {
@@ -174,18 +170,24 @@ routes.get('/language', (req, res) => {
 routes.post('/language', (req, res) => {
     let {
         lang,
-        description
+        description,
     } = req.body;
-    let selectedLanguage = language.filter((item) => {
+
+    let languagesArray = JSON.parse(fs.readFileSync(`${__dirname}/../config/language.json`, 'utf8'));
+    let selectedLanguage = languagesArray.filter((item) => {
         return item.lang.toLocaleLowerCase() === lang.toLocaleLowerCase() || !lang;
     });
     if (selectedLanguage && selectedLanguage.length > 0) {
-        res.send(500, 'Language already exists or invalid');
+        res.json({
+          transactionSuccess: false,
+          message: 'Language already exists or invalid'
+        });
     } else {
         language.push({
             lang,
             description
         });
+        shell.exec(`mv ${__dirname}/../config/language.json ${__dirname}/../config/language.json.bak`);
         fs.writeFile(`${__dirname}/../config/language.json`, JSON.stringify(language), 'utf8', (err) => {
             if (err) throw err;
             res.json({
