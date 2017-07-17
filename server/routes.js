@@ -5,8 +5,7 @@ import fs from 'fs';
 import config from '../config/config.json';
 import language from '../config/language.json';
 import shell from 'shelljs';
-// import async from 'async';
-// import websocketServer from './websocketServer'
+import appConfig from './config';
 
 const routes = new Router;
 const {
@@ -56,7 +55,7 @@ routes.post('/submit', async(req, res) => {
         username = req.body.username,
         password = req.body.password,
         translations = JSON.stringify(req.body.data);
-    // websocketConnection = websocketServer.getConnection();
+
     let pwd = shell.exec('pwd');
     let rootPwd = pwd.stdout.toString();
 
@@ -108,22 +107,63 @@ routes.post('/submit', async(req, res) => {
                 });
             }
         }
-        // websocketConnection.sendUTF(JSON.stringify({'lang':lang,'translations': translations}));
-
     });
 });
 
 
 routes.get('/config', (req, res) => {
-    res.json(config);
+  fs.readFile(`${__dirname}/../config/config.json`, 'utf8', (err, data) => {
+    if(err) {
+      res.json({
+        isConfigured: false,
+        message: 'Something went wrong'
+      })
+    } else {
+      let responseData = JSON.parse(data);
+      if(responseData.isConfigured) {
+        res.json({
+            isConfigured: true,
+            name: responseData.NAME
+          });
+      } else {
+          res.json({
+            isConfigured: false
+          });
+      }
+    }
+  });
+    // if (config.isConfigured) {
+    //   res.json({
+    //     isConfigured: true,
+    //     name: config.NAME
+    //   })
+    // } else {
+    //   res.json({
+    //     isConfigured: false
+    //   });
+    // }
 });
 
 routes.post('/config', (req, res) => {
-    fs.writeFile(`${__dirname}/../config/config.json`, JSON.stringify(req.body), 'utf8', (err) => {
+
+    let request = req.body;
+
+    let configJSON = { };
+
+    for (let i in request) {
+      configJSON[appConfig.mapping[i]] = request[i];
+    };
+
+    configJSON['isConfigured'] = true;
+    configJSON['GIT_LOCATION'] = 'git-location';
+    configJSON['DIRNAME'] = '__dirname';
+
+    fs.writeFileSync(`${__dirname}/../config/config.json`, JSON.stringify(configJSON), 'utf8', (err) => {
         if (err) throw err;
-        res.json({
-            transactionSuccess: true
-        });
+    });
+
+    res.json({
+        transactionSuccess: true
     });
 });
 
@@ -153,48 +193,6 @@ routes.post('/language', (req, res) => {
               lang,
               description
             });
-            // let dir = `${LOCATION}/${lang}`;
-            // if (!fs.existsSync(dir)) {
-            //     fs.mkdirSync(dir);
-            // }
-            // fs.writeFile(`${dir}/translations.json`, JSON.stringify(data), 'utf8', (err2) => {
-            //     if (err2) throw err2;
-            //
-            //     let gitURL = constructGitURL(config.GIT_URL, password);
-            //     if (!fs.existsSync(`${GIT_LOCATION}`)) {
-            //         fs.mkdirSync(`${GIT_LOCATION}`);
-            //         shell.exec(`git clone ${gitURL} ${GIT_LOCATION}`);
-            //     }
-            //
-            //     shell.cp('-r', `${dir}/`, `${GIT_LOCATION}`);
-            //     shell.exec(`git config user.name "${username}"`);
-            //     shell.exec(`git config user.password "${password}"`);
-            //     shell.cd(`${GIT_LOCATION}/${lang}`);
-            //     shell.exec('git add .');
-            //     shell.exec(`git commit -m "Adding translation to ${lang}"`);
-            //     shell.exec(`git pull origin master`);
-            //     let command = shell.exec(`git push ${gitURL} --all`);
-            //
-            //     if (command.code !== 0) {
-            //         shell.cd(`${rootPwd}`);
-            //         shell.rm('-rf', `${dir}/translations.json`);
-            //         shell.exec(`mv ${dir}/translations.json.bak ${dir}/translations.json`);
-            //         isLocked = false;
-            //         res.json({
-            //             transactionSuccess: false
-            //         });
-            //     } else {
-            //         shell.cd(`${rootPwd}`);
-            //         shell.rm('-rf', `${dir}/translations.json.bak`);
-            //         isLocked = false;
-            //         res.json({
-            //           transactionSuccess: true,
-            //           lang,
-            //           data,
-            //           description
-            //         });
-            //     }
-            // });
         });
     }
 });

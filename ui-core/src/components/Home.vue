@@ -214,8 +214,8 @@ export default {
     /** Service call to check if the application is configured. */
     ajax.get('/api/config')
       .then(response => {
-        if (Object.keys(response.data).length) {
-          this.applicationName = response.data.NAME
+        if (response.data.isConfigured) {
+          this.applicationName = response.data.name
           this.getLanguages()
         } else {
           this.$router.push({ name: 'Config' })

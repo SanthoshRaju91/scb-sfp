@@ -114,6 +114,8 @@
 </template>
 
 <script>
+import ajax from '@/services/ajax'
+
 export default {
   data () {
     return {
@@ -126,6 +128,15 @@ export default {
       mongoURL: '',
       errorMode: false
     }
+  },
+
+  created () {
+    ajax.get('/api/config')
+      .then(response => {
+        if (response.data.isConfigured) {
+          this.$router.push({ name: 'Home' })
+        }
+      })
   },
   methods: {
     selectOption (selected) {
@@ -144,6 +155,17 @@ export default {
       if (mode === 'file') {
         if (this.applicationName.length > 5 && this.remoteLocation && this.gitRepo) {
           this.errorMode = false
+
+          ajax.post('/api/config', { name: this.applicationName, location: this.remoteLocation, gitURL: this.gitRepo })
+            .then(response => {
+              if (response.data.transactionSuccess) {
+                this.$router.push({ name: 'Home' })
+              }
+            })
+            .catch(err => {
+              this.errorMode = true
+              console.error(err)
+            })
         } else {
           this.errorMode = true
         }
