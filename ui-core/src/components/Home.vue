@@ -298,9 +298,9 @@ export default {
     getLanguages () {
       ajax.get('/api/language')
         .then(response => {
-          if (response) {
-            this.selectedOption = (this.loadNewlyAdded) ? this.newOption : response.data[0]
-            this.translationOptions = response.data
+          if (response.data.transactionSuccess) {
+            this.selectedOption = (this.loadNewlyAdded) ? this.newOption : response.data.languages[0]
+            this.translationOptions = response.data.languages
             this.selectedValue = `${this.selectedOption.description} (${this.selectedOption.lang})`
             this.getTranslation()
           }

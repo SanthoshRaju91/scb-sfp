@@ -8,10 +8,7 @@ import shell from 'shelljs';
 import appConfig from './config';
 
 const routes = new Router;
-const {
-    LOCATION,
-    GIT_LOCATION
-} = config;
+
 
 var isLocked = false;
 
@@ -26,7 +23,10 @@ function constructGitURL(url, username, password) {
 
 routes.get('/getTranslation/:lang', (req, res) => {
     let payload = req.params;
-    fs.readFile(`${config.LOCATION}/${payload.lang}/translations.json`, 'utf8', (err, data) => {
+    let appConfig = JSON.parse(fs.readFileSync(`${__dirname}/../config/config.json`, 'utf8'));
+    let { LOCATION } = appConfig;
+    
+    fs.readFile(`${LOCATION}/${payload.lang}/translations.json`, 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             res.json({
@@ -44,11 +44,22 @@ routes.get('/getTranslation/:lang', (req, res) => {
 });
 
 routes.post('/submit', async(req, res) => {
-    if(isLocked) {
-      res.json({ transactionSuccess: false, message: 'File update in progess'});
+    if (isLocked) {
+        res.json({
+            transactionSuccess: false,
+            message: 'File update in progess'
+        });
     }
 
-    isLocked =true;
+    isLocked = true;
+    let appConfig = JSON.parse(fs.readFileSync(`${__dirname}/../config/config.json`, 'utf8'));
+
+    let {
+        LOCATION,
+        GIT_URL,
+        GIT_LOCATION
+    } = appConfig;
+
     let lang = req.body.lang,
         dir = `${LOCATION}/${lang}`,
         username = req.body.username,
@@ -59,7 +70,7 @@ routes.post('/submit', async(req, res) => {
     let pwd = shell.exec('pwd');
     let rootPwd = pwd.stdout.toString();
 
-    if(!fs.existsSync(`${LOCATION}`)) {
+    if (!fs.existsSync(`${LOCATION}`)) {
         fs.mkdirSync(`${LOCATION}`);
     }
 
@@ -79,7 +90,7 @@ routes.post('/submit', async(req, res) => {
             });
         } else {
 
-            let gitURL = constructGitURL(config.GIT_URL, username, password);
+            let gitURL = constructGitURL(GIT_URL, username, password);
             if (!fs.existsSync(`${GIT_LOCATION}`)) {
                 fs.mkdirSync(`${GIT_LOCATION}`);
                 shell.exec(`git clone ${gitURL} ${GIT_LOCATION}`);
@@ -98,9 +109,9 @@ routes.post('/submit', async(req, res) => {
                 shell.cd(`${rootPwd}`);
                 shell.rm('-rf', `${dir}/translations.json`);
                 shell.exec(`mv ${dir}/translations.json.bak ${dir}/translations.json`);
-                if(mode === 'add') {
-                  shell.rm('-rf', `${dir}`);
-                  shell.exec(`mv ${__dirname}/../config/language.json.bak ${__dirname}/../config/language.json`);
+                if (mode === 'add') {
+                    shell.rm('-rf', `${dir}`);
+                    shell.exec(`mv ${__dirname}/../config/language.json.bak ${__dirname}/../config/language.json`);
                 }
                 isLocked = false;
                 res.json({
@@ -122,36 +133,36 @@ routes.post('/submit', async(req, res) => {
 
 
 routes.get('/config', (req, res) => {
-  fs.readFile(`${__dirname}/../config/config.json`, 'utf8', (err, data) => {
-    if(err) {
-      res.json({
-        isConfigured: false,
-        message: 'Something went wrong'
-      })
-    } else {
-      let responseData = JSON.parse(data);
-      if(responseData.isConfigured) {
-        res.json({
-            isConfigured: true,
-            name: responseData.NAME
-          });
-      } else {
-          res.json({
-            isConfigured: false
-          });
-      }
-    }
-  });
+    fs.readFile(`${__dirname}/../config/config.json`, 'utf8', (err, data) => {
+        if (err) {
+            res.json({
+                isConfigured: false,
+                message: 'Something went wrong'
+            })
+        } else {
+            let responseData = JSON.parse(data);
+            if (responseData.isConfigured) {
+                res.json({
+                    isConfigured: true,
+                    name: responseData.NAME
+                });
+            } else {
+                res.json({
+                    isConfigured: false
+                });
+            }
+        }
+    });
 });
 
 routes.post('/config', (req, res) => {
 
     let request = req.body;
 
-    let configJSON = { };
+    let configJSON = {};
 
     for (let i in request) {
-      configJSON[appConfig.mapping[i]] = request[i];
+        configJSON[appConfig.mapping[i]] = request[i];
     };
 
     configJSON['isConfigured'] = true;
@@ -168,7 +179,19 @@ routes.post('/config', (req, res) => {
 });
 
 routes.get('/language', (req, res) => {
-    res.json(language);
+    fs.readFile(`${__dirname}/../config/language.json`, 'utf8', (err, data) => {
+        if(err) {
+          res.json({
+            transactionSuccess: false,
+            message: 'Something went wrong'
+          })
+        } else {
+          res.json({
+            transactionSuccess: true,
+            languages: JSON.parse(data)
+          })
+        }
+    });
 });
 
 routes.post('/language', (req, res) => {
@@ -183,8 +206,8 @@ routes.post('/language', (req, res) => {
     });
     if (selectedLanguage && selectedLanguage.length > 0) {
         res.json({
-          transactionSuccess: false,
-          message: 'Language already exists or invalid'
+            transactionSuccess: false,
+            message: 'Language already exists or invalid'
         });
     } else {
         language.push({
@@ -195,9 +218,9 @@ routes.post('/language', (req, res) => {
         fs.writeFile(`${__dirname}/../config/language.json`, JSON.stringify(language), 'utf8', (err) => {
             if (err) throw err;
             res.json({
-              transactionSuccess: true,
-              lang,
-              description
+                transactionSuccess: true,
+                lang,
+                description
             });
         });
     }
