@@ -59,6 +59,10 @@ routes.post('/submit', async(req, res) => {
     let pwd = shell.exec('pwd');
     let rootPwd = pwd.stdout.toString();
 
+    if(!fs.existsSync(`${LOCATION}`)) {
+        fs.mkdirSync(`${LOCATION}`);
+    }
+
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
