@@ -11,6 +11,7 @@ const routes = new Router;
 
 
 var isLocked = false;
+var version = Math.floor(Math.random() * 1000000000);
 
 function constructGitURL(url, username, password) {
     let encodedPassword = encodeURIComponent(password);
@@ -25,7 +26,7 @@ routes.get('/getTranslation/:lang', (req, res) => {
     let payload = req.params;
     let appConfig = JSON.parse(fs.readFileSync(`${__dirname}/../config/config.json`, 'utf8'));
     let { LOCATION } = appConfig;
-    
+
     fs.readFile(`${LOCATION}/${payload.lang}/translations.json`, 'utf8', (err, data) => {
         if (err) {
             console.error(err);
@@ -37,7 +38,8 @@ routes.get('/getTranslation/:lang', (req, res) => {
             let responseData = JSON.parse(data);
             res.json({
                 success: true,
-                data: responseData
+                data: responseData,
+                version
             });
         }
     });
@@ -49,6 +51,13 @@ routes.post('/submit', async(req, res) => {
             transactionSuccess: false,
             message: 'File update in progess'
         });
+        return;
+    } else if(req.body.version !== version) {
+      res.json({
+          transactionSuccess: false,
+          message: 'Your translation file is not updated.'
+      });
+      return;
     }
 
     isLocked = true;
@@ -121,10 +130,11 @@ routes.post('/submit', async(req, res) => {
                 shell.cd(`${rootPwd}`);
                 shell.rm('-rf', `${dir}/translations.json.bak`);
                 isLocked = false;
-                console.log('Passed!!!!!!')
+                version = Math.floor(Math.random() * 1000000000);
 
                 res.json({
-                    transactionSuccess: true
+                    transactionSuccess: true,
+                    version
                 });
             }
         }

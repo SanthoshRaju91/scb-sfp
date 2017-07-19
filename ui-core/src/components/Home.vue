@@ -344,10 +344,11 @@ export default {
         let selectedLang = this.selectedOption.lang
         let selectedValue = this.selectedValue
         this.isLoading = true
-        ajax.post('/api/submit', { lang: selectedLang, data: this.translation, username: this.gitEmailAddress, password: this.gitPassword})
+        ajax.post('/api/submit', { lang: selectedLang, version: this.version, data: this.translation, username: this.gitEmailAddress, password: this.gitPassword})
           .then(response => {
             this.isLoading = false
             if(response.data.transactionSuccess) {
+              this.version = response.data.version
               this.showSubmit = true
               this.submitMsg = `New translation written & imported for ${selectedValue}`
               this.showSubmit = false
