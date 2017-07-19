@@ -66,7 +66,7 @@
           </div>
 
           <div class="col-lg-4">
-            <button type="submit" class="btn btn-success" id="submitNewTranslation"  data-toggle="modal" data-target="#submitConfirmation" v-bind:disabled=showAddButton>Add New Translation</button>
+            <button type="submit" class="btn btn-success" id="submitNewTranslation"  data-toggle="modal" data-target="#submitConfirmation" v-bind:disabled="showAddButton">Add New Translation</button>
           </div>
         </div>
 
@@ -75,7 +75,6 @@
       <br>
         <json-editor
         v-bind:translations="translation"
-        v-if="isData"
         @updated="updateTranslation"
         @error="checkError"
         ></json-editor>
@@ -298,7 +297,7 @@ export default {
     getLanguages () {
       ajax.get('/api/language')
         .then(response => {
-          if (response.data.transactionSuccess) {
+          if (response.data.transactionSuccess && response.data.languages.length > 0) {
             this.selectedOption = (this.loadNewlyAdded) ? this.newOption : response.data.languages[0]
             this.translationOptions = response.data.languages
             this.selectedValue = `${this.selectedOption.description} (${this.selectedOption.lang})`

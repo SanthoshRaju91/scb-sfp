@@ -4,7 +4,8 @@ import config from '../config'
 export default {
 
   constructURL (url) {
-    return `${config.URL}${url}`
+    let env = process.env.NODE_ENV
+    return (env === 'production') ? `${config.production.URL}${url}` : `${config.dev.URL}${url}`
   },
 
   get (url, data) {
