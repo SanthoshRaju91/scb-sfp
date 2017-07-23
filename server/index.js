@@ -2,12 +2,9 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import fs from 'fs';
 import morgan from 'morgan';
-import config from '../config/config';
 import routes from './routes';
 import appConfig from './config';
-//import websocketServer from './websocketServer'
 
-// const {  } = config;
 const { PORT, DIRNAME } = appConfig;
 const app = express();
 
@@ -23,7 +20,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// websocketServer.start()
 
 /** Application REST endpoint's definition */
 app.use('/api', routes);

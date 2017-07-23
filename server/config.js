@@ -5,5 +5,10 @@ module.exports = {
     location: 'LOCATION',
     gitURL: 'GIT_URL',
     name: 'NAME'
+  },
+  loggerConfig: {
+    PATH: '../logs',
+    dev: 'development.log',
+    prod: 'production.logs'
   }
 };
