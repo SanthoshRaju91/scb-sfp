@@ -13,6 +13,13 @@ const routes = new Router;
 var isLocked = false;
 var version = Math.floor(Math.random() * 1000000000);
 
+routes.get('/getVersion', async(req, res) => {
+  res.json({
+    transactionSuccess: true,
+    version
+  })
+});
+
 /**
  * Route for getting the translation for the selected language
  * @URL /getTranslation/:lang
@@ -41,6 +48,7 @@ routes.get('/getTranslation/:lang', (req, res) => {
             });
         });
 });
+
 
 /**
 * Route to save the translation
